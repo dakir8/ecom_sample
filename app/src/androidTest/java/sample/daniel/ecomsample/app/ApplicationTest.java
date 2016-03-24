@@ -1,4 +1,4 @@
-package sample.daniel.ecomsample;
+package sample.daniel.ecomsample.app;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
