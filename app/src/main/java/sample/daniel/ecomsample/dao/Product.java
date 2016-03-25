@@ -11,6 +11,7 @@ public class Product implements Serializable {
     String colour;
     String price;
     String description;
+    String availabilityStatus;
 
     public String getProductName() {
         return productName;
@@ -42,5 +43,13 @@ public class Product implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAvailabilityStatus() {
+        return availabilityStatus;
+    }
+
+    public void setAvailabilityStatus(String availabilityStatus) {
+        this.availabilityStatus = availabilityStatus;
     }
 }

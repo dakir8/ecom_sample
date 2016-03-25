@@ -1,6 +1,7 @@
 package sample.daniel.ecomsample.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -95,7 +96,14 @@ public class ProductListFragment extends BaseFragment {
         });
     }
 
-    public static class ProductCellVH extends RecyclerView.ViewHolder
+    private void onViewProductDetail(Product product)
+    {
+        Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
+        intent.putExtra(ProductDetailActivity.EXTRA_PRODUCT, product);
+        startActivity(intent);
+    }
+
+    public class ProductCellVH extends RecyclerView.ViewHolder
     {
         public View root;
         public TextView tvProductName;
@@ -115,7 +123,7 @@ public class ProductListFragment extends BaseFragment {
 
     }
 
-    public static class ProductListdapter extends RecyclerView.Adapter<ProductCellVH> {
+    public class ProductListdapter extends RecyclerView.Adapter<ProductCellVH> {
         private Context context;
         private List<Product> products;
 
@@ -135,13 +143,20 @@ public class ProductListFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(ProductCellVH holder, int position) {
-            Product item = products.get(position);
+            final Product item = products.get(position);
 
             if (item == null) return;
 
             holder.tvProductName.setText(item.getProductName());
             holder.tvBrandName.setText("test brand");
             Picasso.with(context).load(DUMMY_THUMBNAILS[position % DUMMY_THUMBNAILS.length]).into(holder.imgThumbnail);
+
+            holder.root.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onViewProductDetail(item);
+                }
+            });
         }
 
         @Override

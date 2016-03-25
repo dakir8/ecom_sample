@@ -17,7 +17,7 @@ public class ProductListActivity extends BaseActivity {
         Fragment showingFragment = getSupportFragmentManager().findFragmentById(R.id.content);
         if (showingFragment == null)
         {
-            getSupportFragmentManager().beginTransaction().replace(R.id.content,BrandListFragment.newInstance(), BrandListFragment.class.getName()).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.content, ProductListFragment.newInstance(), ProductListFragment.class.getName()).commit();
         }
     }
 }
