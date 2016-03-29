@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ import sample.daniel.ecomsample.service.WebServiceInstance;
 /**
  * Created by danielqiu on 24/3/16.
  */
-public class BrandListFragment extends BaseFragment {
+public class BrandListFragment extends FullScreenDialogFragment {
 
     public static BrandListFragment newInstance() {
 
@@ -95,7 +96,7 @@ public class BrandListFragment extends BaseFragment {
         });
     }
 
-    public static class BrandCellVH extends RecyclerView.ViewHolder
+    public class BrandCellVH extends RecyclerView.ViewHolder
     {
         public View root;
         public ImageView imgThumbnail;
@@ -113,7 +114,7 @@ public class BrandListFragment extends BaseFragment {
 
     }
 
-    public static class BrandListdapter extends RecyclerView.Adapter<BrandCellVH> {
+    public class BrandListdapter extends RecyclerView.Adapter<BrandCellVH> {
         private Context context;
         private List<Brand> brands;
 
@@ -133,17 +134,33 @@ public class BrandListFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(BrandCellVH holder, int position) {
-            Brand item = brands.get(position);
+            final Brand item = brands.get(position);
 
             if (item == null) return;
 
             holder.tvBrandName.setText(item.getName());
             Picasso.with(context).load(DUMMY_THUMBNAILS[position % DUMMY_THUMBNAILS.length]).into(holder.imgThumbnail);
+            holder.root.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    EventBus.getDefault().post(new BrandSelectionMsg(item));
+                    dismiss();
+                }
+            });
         }
 
         @Override
         public int getItemCount() {
             return brands == null ? 0 : brands.size();
+        }
+    }
+
+    public static class BrandSelectionMsg
+    {
+        public Brand brand;
+        public BrandSelectionMsg(Brand brand)
+        {
+            this.brand = brand;
         }
     }
 

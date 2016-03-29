@@ -12,6 +12,7 @@ public class Product implements Serializable {
     String price;
     String description;
     String availabilityStatus;
+    int imageDrawableId;
 
     public String getProductName() {
         return productName;
@@ -51,5 +52,13 @@ public class Product implements Serializable {
 
     public void setAvailabilityStatus(String availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
+    }
+
+    public int getImageDrawableId() {
+        return imageDrawableId;
+    }
+
+    public void setImageDrawableId(int imageDrawableId) {
+        this.imageDrawableId = imageDrawableId;
     }
 }

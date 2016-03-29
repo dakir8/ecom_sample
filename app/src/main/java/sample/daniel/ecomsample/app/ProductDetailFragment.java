@@ -60,7 +60,7 @@ public class ProductDetailFragment extends BaseFragment {
         int DUMMY_THUMBNAILS[] = {R.drawable.p1, R.drawable.p2, R.drawable.p3, R.drawable.p4, R.drawable.p5,
                 R.drawable.p6, R.drawable.p7, R.drawable.p8, R.drawable.p9, R.drawable.p10};
 
-        Picasso.with(getActivity()).load(DUMMY_THUMBNAILS[(int)(Math.random() * 10) % DUMMY_THUMBNAILS.length]).into(mImgCover);
+        Picasso.with(getActivity()).load(mProduct.getImageDrawableId()).into(mImgCover);
     }
 
 }

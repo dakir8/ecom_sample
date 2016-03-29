@@ -2,12 +2,16 @@ package sample.daniel.ecomsample.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,15 +19,20 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import sample.daniel.ecomsample.dao.Brand;
 import sample.daniel.ecomsample.dao.Product;
 import sample.daniel.ecomsample.dao.ProductServiceResponse;
 import sample.daniel.ecomsample.service.WebService;
 import sample.daniel.ecomsample.service.WebServiceInstance;
+import sample.daniel.ecomsample.ui.DividerItemDecoration;
 
 /**
  * Created by danielqiu on 24/3/16.
@@ -34,10 +43,12 @@ public class ProductListFragment extends BaseFragment {
 
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
+    private Toolbar mToolbar;
 
     private ProductListdapter mAdapter;
     private ProductServiceResponse mProductServiceResponse;
     private List<Product> mProducts;
+    private Brand mBrand;
 
     public static ProductListFragment newInstance() {
 
@@ -46,6 +57,32 @@ public class ProductListFragment extends BaseFragment {
         ProductListFragment fragment = new ProductListFragment();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+    }
+
+    @Subscribe
+    public void onEventMainThread(BrandListFragment.BrandSelectionMsg msg)
+    {
+        mBrand = msg.brand;
+
+        fetchProducts();
     }
 
     @Nullable
@@ -58,17 +95,49 @@ public class ProductListFragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        setupToolbar();
+
         mRecyclerView = (RecyclerView) getView().findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
+                DividerItemDecoration.VERTICAL_LIST,
+                getResources().getDrawable(R.drawable.bg_divider)));
 
         fetchProducts();
     }
 
+    private void setupToolbar()
+    {
+        mToolbar = (Toolbar) getView().findViewById(R.id.toolbar);
+        if (getActivity() != null && mToolbar != null)
+        {
+            // set title
+            mToolbar.setTitle("Product List");
+
+            // set navigation
+            mToolbar.inflateMenu(R.menu.product_list);
+            mToolbar.setOnMenuItemClickListener(mOnMenuItemClickListener);
+        }
+    }
+
+    private Toolbar.OnMenuItemClickListener mOnMenuItemClickListener = new Toolbar.OnMenuItemClickListener() {
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.edit:
+                    BrandListFragment.newInstance().show(getChildFragmentManager(), BrandListFragment.class.getSimpleName());
+                    return true;
+            }
+            return false;
+        }
+    };
+
     private void fetchProducts()
     {
         WebService service = WebServiceInstance.getRetrofitInstance().create(WebService.class);
-        service.listProducts().enqueue(new Callback<ProductServiceResponse>() {
+        Call<ProductServiceResponse> call = mBrand == null ? service.listProducts() : service.listProducts(mBrand.getName());
+        call.enqueue(new Callback<ProductServiceResponse>() {
             @Override
             public void onResponse(Call<ProductServiceResponse> call, Response<ProductServiceResponse> response) {
 
@@ -96,11 +165,18 @@ public class ProductListFragment extends BaseFragment {
         });
     }
 
-    private void onViewProductDetail(Product product)
+    private void onViewProductDetail(Product product, View animateView)
     {
         Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
         intent.putExtra(ProductDetailActivity.EXTRA_PRODUCT, product);
-        startActivity(intent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && animateView != null) {
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), animateView, "CoverImage");
+
+            getActivity().startActivity(intent, options.toBundle());
+        } else {
+            startActivity(intent);
+        }
     }
 
     public class ProductCellVH extends RecyclerView.ViewHolder
@@ -142,19 +218,20 @@ public class ProductListFragment extends BaseFragment {
         }
 
         @Override
-        public void onBindViewHolder(ProductCellVH holder, int position) {
+        public void onBindViewHolder(final ProductCellVH holder, int position) {
             final Product item = products.get(position);
 
             if (item == null) return;
 
             holder.tvProductName.setText(item.getProductName());
-            holder.tvBrandName.setText("test brand");
-            Picasso.with(context).load(DUMMY_THUMBNAILS[position % DUMMY_THUMBNAILS.length]).into(holder.imgThumbnail);
+            holder.tvBrandName.setText("Brand Name");
+            item.setImageDrawableId(DUMMY_THUMBNAILS[position % DUMMY_THUMBNAILS.length]);
+            Picasso.with(context).load(item.getImageDrawableId()).into(holder.imgThumbnail);
 
             holder.root.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    onViewProductDetail(item);
+                    onViewProductDetail(item, holder.imgThumbnail);
                 }
             });
         }
