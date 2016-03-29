@@ -19,6 +19,7 @@ public class ProductDetailFragment extends BaseFragment {
 
     private TextView mTvProductName, mTvNumReviews, mTvAvailabilityStatus, mTvPrice, mTvDescription;
     private ImageView mImgCover;
+    private View mBtnAddComment;
 
     public static ProductDetailFragment newInstance(Product product) {
         ProductDetailFragment fragment = new ProductDetailFragment();
@@ -47,6 +48,7 @@ public class ProductDetailFragment extends BaseFragment {
         mTvDescription = (TextView) getView().findViewById(R.id.tvDescription);
 
         mImgCover = (ImageView) getView().findViewById(R.id.imgCover);
+        mBtnAddComment = getView().findViewById(R.id.btnAddComment);
 
         setupData();
     }
@@ -61,6 +63,13 @@ public class ProductDetailFragment extends BaseFragment {
                 R.drawable.p6, R.drawable.p7, R.drawable.p8, R.drawable.p9, R.drawable.p10};
 
         Picasso.with(getActivity()).load(mProduct.getImageDrawableId()).into(mImgCover);
+
+        mBtnAddComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddReviewFragment.newInstance(mProduct).show(getChildFragmentManager(), AddReviewFragment.class.getSimpleName());
+            }
+        });
     }
 
 }
